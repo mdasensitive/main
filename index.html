@@ -538,27 +538,86 @@
             top: 2px;
         }
 
-        /* Плавающие геометрические фигуры */
-        .floating-shape {
+        /* Черная дыра */
+        .black-hole {
             position: fixed;
             pointer-events: none;
-            z-index: 0;
-            opacity: 0.1;
-            border: 2px solid #00ffff;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 1s ease;
         }
 
-        @keyframes float {
+        .black-hole-core {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #000 0%, #1a0033 40%, transparent 70%);
+            box-shadow: 
+                0 0 50px rgba(138, 43, 226, 0.8),
+                0 0 100px rgba(138, 43, 226, 0.6),
+                inset 0 0 50px rgba(0, 0, 0, 0.9);
+            animation: rotate-hole 10s linear infinite;
+        }
+
+        @keyframes rotate-hole {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .black-hole-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 3px solid;
+            animation: pulse-ring 2s ease-in-out infinite;
+        }
+
+        .black-hole-ring:nth-child(1) {
+            width: 180px;
+            height: 180px;
+            border-color: rgba(138, 43, 226, 0.6);
+            animation-delay: 0s;
+        }
+
+        .black-hole-ring:nth-child(2) {
+            width: 220px;
+            height: 220px;
+            border-color: rgba(148, 0, 211, 0.4);
+            animation-delay: 0.3s;
+        }
+
+        .black-hole-ring:nth-child(3) {
+            width: 260px;
+            height: 260px;
+            border-color: rgba(75, 0, 130, 0.3);
+            animation-delay: 0.6s;
+        }
+
+        @keyframes pulse-ring {
             0%, 100% {
-                transform: translateY(0) rotate(0deg);
-            }
-            25% {
-                transform: translateY(-50px) rotate(90deg);
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.8;
             }
             50% {
-                transform: translateY(0) rotate(180deg);
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.4;
             }
-            75% {
-                transform: translateY(50px) rotate(270deg);
+        }
+
+        .suck-animation {
+            animation: get-sucked 2s ease-in forwards;
+        }
+
+        @keyframes get-sucked {
+            0% {
+                transform: translate(0, 0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0.1) rotate(720deg);
+                opacity: 0;
             }
         }
 
@@ -971,6 +1030,9 @@
     </section>
 
     <script>
+        // ==== ОПРЕДЕЛЕНИЕ МОБИЛЬНОГО УСТРОЙСТВА ====
+        const isMobile = window.innerWidth < 768;
+
         // ==== МОБИЛЬНОЕ МЕНЮ ====
         const burger = document.getElementById('burger');
         const navLinks = document.getElementById('navLinks');
@@ -1179,41 +1241,161 @@
             }
         }, Math.random() * 5000 + 5000);
 
-        // ==== ПЛАВАЮЩИЕ ГЕОМЕТРИЧЕСКИЕ ФИГУРЫ ====
-        function createFloatingShapes() {
-            const shapes = ['square', 'triangle', 'circle', 'hexagon'];
+        // ==== ЧЕРНЫЕ ДЫРЫ С ЭФФЕКТОМ ЗАСАСЫВАНИЯ ====
+        let inactivityTimer;
+        let blackHoles = [];
+        let isBeingSucked = false;
+        const INACTIVITY_TIMEOUT = 5000; // 5 секунд бездействия
+
+        function createBlackHole() {
+            const blackHole = document.createElement('div');
+            blackHole.className = 'black-hole';
             
-            for (let i = 0; i < 5; i++) {
-                const shape = document.createElement('div');
-                shape.className = 'floating-shape';
-                
-                const size = Math.random() * 50 + 30;
-                shape.style.width = size + 'px';
-                shape.style.height = size + 'px';
-                shape.style.left = Math.random() * 100 + '%';
-                shape.style.top = Math.random() * 100 + '%';
-                
-                const shapeType = shapes[Math.floor(Math.random() * shapes.length)];
-                if (shapeType === 'circle') {
-                    shape.style.borderRadius = '50%';
-                } else if (shapeType === 'triangle') {
-                    shape.style.width = '0';
-                    shape.style.height = '0';
-                    shape.style.borderLeft = size/2 + 'px solid transparent';
-                    shape.style.borderRight = size/2 + 'px solid transparent';
-                    shape.style.borderBottom = size + 'px solid rgba(0, 255, 255, 0.1)';
-                    shape.style.border = 'none';
-                }
-                
-                shape.style.animation = `float ${Math.random() * 10 + 15}s infinite ease-in-out`;
-                shape.style.animationDelay = Math.random() * 5 + 's';
-                
-                document.body.appendChild(shape);
-            }
+            // Случайная позиция на экране
+            const x = Math.random() * (window.innerWidth - 300) + 150;
+            const y = Math.random() * (window.innerHeight - 300) + 150;
+            
+            blackHole.style.left = x + 'px';
+            blackHole.style.top = y + 'px';
+            
+            blackHole.innerHTML = `
+                <div class="black-hole-core"></div>
+                <div class="black-hole-ring"></div>
+                <div class="black-hole-ring"></div>
+                <div class="black-hole-ring"></div>
+            `;
+            
+            document.body.appendChild(blackHole);
+            blackHoles.push({ element: blackHole, x, y });
+            
+            // Плавное появление
+            setTimeout(() => {
+                blackHole.style.opacity = '1';
+            }, 100);
+            
+            return { element: blackHole, x, y };
         }
 
+        function startSuckingEffect() {
+            if (isBeingSucked) return;
+            isBeingSucked = true;
+            
+            // Создаём 2-3 черные дыры
+            const holesCount = Math.floor(Math.random() * 2) + 2;
+            for (let i = 0; i < holesCount; i++) {
+                setTimeout(() => {
+                    createBlackHole();
+                }, i * 500);
+            }
+            
+            // Начинаем засасывать элементы через 1 секунду
+            setTimeout(() => {
+                suckElements();
+            }, 1500);
+        }
+
+        function suckElements() {
+            const elementsToSuck = document.querySelectorAll('.skill-box, .project-card, .contact-item, .section-title, .hero-content h1, .typing-text, .btn');
+            
+            elementsToSuck.forEach((element, index) => {
+                // Находим ближайшую черную дыру
+                let nearestHole = blackHoles[0];
+                let minDistance = Infinity;
+                
+                const rect = element.getBoundingClientRect();
+                const elementX = rect.left + rect.width / 2;
+                const elementY = rect.top + rect.height / 2;
+                
+                blackHoles.forEach(hole => {
+                    const distance = Math.sqrt(
+                        Math.pow(hole.x - elementX, 2) + 
+                        Math.pow(hole.y - elementY, 2)
+                    );
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestHole = hole;
+                    }
+                });
+                
+                // Вычисляем вектор к черной дыре
+                const deltaX = nearestHole.x - elementX;
+                const deltaY = nearestHole.y - elementY;
+                
+                // Сохраняем оригинальную позицию
+                element.dataset.originalTransform = element.style.transform || '';
+                
+                // Задаем CSS переменные для анимации
+                element.style.setProperty('--tx', deltaX + 'px');
+                element.style.setProperty('--ty', deltaY + 'px');
+                
+                setTimeout(() => {
+                    element.classList.add('suck-animation');
+                }, index * 50);
+            });
+        }
+
+        function restoreElements() {
+            if (!isBeingSucked) return;
+            
+            // Убираем черные дыры
+            blackHoles.forEach(hole => {
+                hole.element.style.opacity = '0';
+                setTimeout(() => {
+                    hole.element.remove();
+                }, 1000);
+            });
+            blackHoles = [];
+            
+            // Возвращаем элементы на место
+            const elementsToRestore = document.querySelectorAll('.suck-animation');
+            elementsToRestore.forEach((element, index) => {
+                setTimeout(() => {
+                    element.classList.remove('suck-animation');
+                    element.style.transform = element.dataset.originalTransform || '';
+                    element.style.removeProperty('--tx');
+                    element.style.removeProperty('--ty');
+                }, index * 30);
+            });
+            
+            isBeingSucked = false;
+        }
+
+        function resetInactivityTimer() {
+            // Если идет засасывание, восстанавливаем элементы
+            if (isBeingSucked) {
+                restoreElements();
+            }
+            
+            clearTimeout(inactivityTimer);
+            
+            // Запускаем таймер заново
+            inactivityTimer = setTimeout(() => {
+                if (document.hasFocus()) {
+                    startSuckingEffect();
+                }
+            }, INACTIVITY_TIMEOUT);
+        }
+
+        // Отслеживаем активность пользователя
         if (!isMobile) {
-            createFloatingShapes();
+            ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+                document.addEventListener(event, resetInactivityTimer);
+            });
+            
+            // Запускаем таймер при загрузке
+            resetInactivityTimer();
+            
+            // Останавливаем эффект если пользователь покинул вкладку
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    clearTimeout(inactivityTimer);
+                    if (isBeingSucked) {
+                        restoreElements();
+                    }
+                } else {
+                    resetInactivityTimer();
+                }
+            });
         }
 
         // ==== СВЕТЯЩИЕСЯ ОРБЫ ====
@@ -1554,8 +1736,6 @@
         }
 
         // ==== PERFORMANCE: Отключение эффектов на мобильных ====
-        const isMobile = window.innerWidth < 768;
-        
         if (isMobile) {
             // Отключаем canvas trail
             canvas.style.display = 'none';
