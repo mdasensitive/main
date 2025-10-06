@@ -492,6 +492,96 @@
             text-shadow: 0 0 10px #00ffff;
         }
 
+        /* Падающие звёзды */
+        .shooting-star {
+            position: fixed;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(to bottom, #fff, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+            transform: rotate(-45deg);
+        }
+
+        @keyframes shooting {
+            0% {
+                opacity: 1;
+                transform: translateX(0) translateY(0) rotate(-45deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(300px) translateY(300px) rotate(-45deg);
+            }
+        }
+
+        /* Летающие кометы */
+        .comet {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: #00ffff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+        }
+
+        .comet::after {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(to right, #00ffff, transparent);
+            right: 6px;
+            top: 2px;
+        }
+
+        /* Плавающие геометрические фигуры */
+        .floating-shape {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+            border: 2px solid #00ffff;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-50px) rotate(90deg);
+            }
+            50% {
+                transform: translateY(0) rotate(180deg);
+            }
+            75% {
+                transform: translateY(50px) rotate(270deg);
+            }
+        }
+
+        /* Светящиеся орбы */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.3), transparent);
+        }
+
+        @keyframes pulse-orb {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.6;
+            }
+        }
+
         /* Эффект ряби */
         .ripple {
             position: fixed;
@@ -696,6 +786,20 @@
         </div>
     </section>
 
+    <section id="about" class="section">
+        <h2 class="section-title">О себе</h2>
+        <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+            <p style="font-size: 1.2rem; line-height: 1.8; opacity: 0.9; margin-bottom: 30px;">
+                Backend-разработчик с опытом создания серверных приложений, Telegram-ботов и веб-решений. 
+                Специализируюсь на Python, но готов работать с различными технологиями в зависимости от требований проекта.
+            </p>
+            <p style="font-size: 1.1rem; line-height: 1.8; opacity: 0.8;">
+                Увлечён созданием эффективных и масштабируемых решений. Постоянно изучаю новые технологии 
+                и лучшие практики разработки. Открыт для интересных проектов и сотрудничества.
+            </p>
+        </div>
+    </section>
+
     <section id="skills" class="section">
         <h2 class="section-title">Технический стек</h2>
         <div class="skills-container">
@@ -863,16 +967,6 @@
                 <div class="contact-label">GitHub</div>
                 <div class="contact-value">github.com/yourusername</div>
             </a>
-            <a href="mailto:your@email.com" class="contact-item">
-                <div class="contact-icon">📧</div>
-                <div class="contact-label">Email</div>
-                <div class="contact-value">your@email.com</div>
-            </a>
-            <a href="https://linkedin.com/in/yourprofile" class="contact-item">
-                <div class="contact-icon">👔</div>
-                <div class="contact-label">LinkedIn</div>
-                <div class="contact-value">linkedin.com/in/yourprofile</div>
-            </a>
         </div>
     </section>
 
@@ -1028,6 +1122,167 @@
 
         // Запуск матричного дождя при наведении на секцию навыков
         document.getElementById('skills').addEventListener('mouseenter', createMatrixRain);
+
+        // ==== ПАДАЮЩИЕ ЗВЁЗДЫ ====
+        function createShootingStar() {
+            const star = document.createElement('div');
+            star.className = 'shooting-star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 50 + '%';
+            document.body.appendChild(star);
+
+            star.style.animation = 'shooting 2s ease-out';
+
+            setTimeout(() => star.remove(), 2000);
+        }
+
+        // Создаём падающие звёзды каждые 3-8 секунд
+        setInterval(() => {
+            if (!isMobile) {
+                createShootingStar();
+            }
+        }, Math.random() * 5000 + 3000);
+
+        // ==== ЛЕТАЮЩИЕ КОМЕТЫ ====
+        function createComet() {
+            const comet = document.createElement('div');
+            comet.className = 'comet';
+            
+            const startX = Math.random() < 0.5 ? -50 : window.innerWidth + 50;
+            const startY = Math.random() * window.innerHeight;
+            const endX = startX < 0 ? window.innerWidth + 50 : -50;
+            const endY = Math.random() * window.innerHeight;
+            
+            comet.style.left = startX + 'px';
+            comet.style.top = startY + 'px';
+            document.body.appendChild(comet);
+
+            const duration = Math.random() * 3000 + 2000;
+
+            comet.animate([
+                { left: startX + 'px', top: startY + 'px', opacity: 0 },
+                { opacity: 1, offset: 0.2 },
+                { opacity: 1, offset: 0.8 },
+                { left: endX + 'px', top: endY + 'px', opacity: 0 }
+            ], {
+                duration: duration,
+                easing: 'ease-in-out'
+            });
+
+            setTimeout(() => comet.remove(), duration);
+        }
+
+        // Создаём кометы каждые 5-10 секунд
+        setInterval(() => {
+            if (!isMobile) {
+                createComet();
+            }
+        }, Math.random() * 5000 + 5000);
+
+        // ==== ПЛАВАЮЩИЕ ГЕОМЕТРИЧЕСКИЕ ФИГУРЫ ====
+        function createFloatingShapes() {
+            const shapes = ['square', 'triangle', 'circle', 'hexagon'];
+            
+            for (let i = 0; i < 5; i++) {
+                const shape = document.createElement('div');
+                shape.className = 'floating-shape';
+                
+                const size = Math.random() * 50 + 30;
+                shape.style.width = size + 'px';
+                shape.style.height = size + 'px';
+                shape.style.left = Math.random() * 100 + '%';
+                shape.style.top = Math.random() * 100 + '%';
+                
+                const shapeType = shapes[Math.floor(Math.random() * shapes.length)];
+                if (shapeType === 'circle') {
+                    shape.style.borderRadius = '50%';
+                } else if (shapeType === 'triangle') {
+                    shape.style.width = '0';
+                    shape.style.height = '0';
+                    shape.style.borderLeft = size/2 + 'px solid transparent';
+                    shape.style.borderRight = size/2 + 'px solid transparent';
+                    shape.style.borderBottom = size + 'px solid rgba(0, 255, 255, 0.1)';
+                    shape.style.border = 'none';
+                }
+                
+                shape.style.animation = `float ${Math.random() * 10 + 15}s infinite ease-in-out`;
+                shape.style.animationDelay = Math.random() * 5 + 's';
+                
+                document.body.appendChild(shape);
+            }
+        }
+
+        if (!isMobile) {
+            createFloatingShapes();
+        }
+
+        // ==== СВЕТЯЩИЕСЯ ОРБЫ ====
+        function createOrbs() {
+            for (let i = 0; i < 3; i++) {
+                const orb = document.createElement('div');
+                orb.className = 'orb';
+                
+                const size = Math.random() * 200 + 100;
+                orb.style.width = size + 'px';
+                orb.style.height = size + 'px';
+                orb.style.left = Math.random() * 100 + '%';
+                orb.style.top = Math.random() * 100 + '%';
+                orb.style.animation = `pulse-orb ${Math.random() * 3 + 3}s infinite ease-in-out`;
+                orb.style.animationDelay = Math.random() * 2 + 's';
+                
+                document.body.appendChild(orb);
+            }
+        }
+
+        if (!isMobile) {
+            createOrbs();
+        }
+
+        // ==== ДОПОЛНИТЕЛЬНЫЕ ЧАСТИЦЫ В УГЛАХ ====
+        function createCornerParticles() {
+            const corners = [
+                { x: 0, y: 0 },
+                { x: window.innerWidth, y: 0 },
+                { x: 0, y: window.innerHeight },
+                { x: window.innerWidth, y: window.innerHeight }
+            ];
+
+            corners.forEach((corner, index) => {
+                setInterval(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = corner.x + 'px';
+                    particle.style.top = corner.y + 'px';
+                    document.body.appendChild(particle);
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 100 + 50;
+                    const duration = Math.random() * 2000 + 1000;
+
+                    particle.animate([
+                        { 
+                            left: corner.x + 'px', 
+                            top: corner.y + 'px', 
+                            opacity: 1 
+                        },
+                        { 
+                            left: (corner.x + Math.cos(angle) * distance) + 'px', 
+                            top: (corner.y + Math.sin(angle) * distance) + 'px', 
+                            opacity: 0 
+                        }
+                    ], {
+                        duration: duration,
+                        easing: 'ease-out'
+                    });
+
+                    setTimeout(() => particle.remove(), duration);
+                }, 3000 + index * 750);
+            });
+        }
+
+        if (!isMobile) {
+            createCornerParticles();
+        }
 
         // ==== RIPPLE EFFECT ON CLICK ====
         document.addEventListener('click', (e) => {
